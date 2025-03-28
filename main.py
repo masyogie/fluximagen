@@ -2,9 +2,7 @@ import sys
 import requests
 import time
 import datetime
-import base64
 import os
-import json
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 
@@ -88,7 +86,6 @@ class SDXLWorker(QtCore.QObject):
         self.image_path = image_path
         self.prompt = prompt
         self.strength = strength
-        self.cancelled = False
         self.huggingface_api_key = os.environ.get("HUGGINGFACE_API_KEY")
         if not self.huggingface_api_key:
             raise Exception("HuggingFace API key not set in environment")
@@ -161,7 +158,6 @@ class ImageGeneratorApp(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.last_prompt = ""
-        self.cancelled = False
         self.temp_image_path = None
         self.initUI()
 
@@ -249,7 +245,8 @@ class ImageGeneratorApp(QtWidgets.QWidget):
         return True
 
     def cancel_process(self):
-        self.cancelled = True
+        if hasattr(self, 'flux_worker'):
+            self.flux_worker.cancelled = True
         self.log("Proses pembatalan diminta...")
 
     def on_generate(self):
@@ -258,7 +255,6 @@ class ImageGeneratorApp(QtWidgets.QWidget):
 
         prompt = self.prompt_input.toPlainText().strip()
         self.last_prompt = prompt
-        self.cancelled = False
 
         # Setup worker thread untuk Flux
         self.flux_thread = QtCore.QThread()
@@ -406,7 +402,6 @@ class ImageGeneratorApp(QtWidgets.QWidget):
         self.cancel_button.setEnabled(False)
         self.progress.hide()
         self.status_label.setText("Status: Siap")
-        self.cancelled = False
 
 
 if __name__ == "__main__":
