@@ -1,10 +1,9 @@
 # FluxImagen
 
-FluxImagen adalah aplikasi Python berbasis PyQt5 yang mengintegrasikan Flux Pro Ultra untuk pembuatan gambar dan proses refining gambar menggunakan SDXL (Stable Diffusion XL Refiner) dari Hugging Face.
+FluxImagen adalah aplikasi Python berbasis PyQt5 yang mengintegrasikan Flux Pro Ultra untuk pembuatan gambar.
 
 ## Fitur
 - **Generasi Gambar:** Menggunakan API Flux Pro Ultra untuk membuat gambar dari prompt.
-- **Refinement SDXL:** Opsional, menggunakan model Stable Diffusion XL Refiner dari Hugging Face untuk menyempurnakan gambar.
 - **Antarmuka Pengguna:** Dibangun dengan PyQt5, memberikan kemudahan penggunaan dan kontrol langsung melalui GUI.
 
 ## Prasyarat

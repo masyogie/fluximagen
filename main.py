@@ -77,83 +77,6 @@ class FluxWorker(QtCore.QObject):
             self.error.emit(f"Error Flux API: {str(e)}")
 
 
-class SDXLWorker(QtCore.QObject):
-    finished = QtCore.pyqtSignal(str)
-    error = QtCore.pyqtSignal(str)
-    progress = QtCore.pyqtSignal(str)
-
-    def __init__(self, image_path, prompt, strength=0.5):
-        super().__init__()
-        self.image_path = image_path
-        self.prompt = prompt
-        self.strength = strength
-        self.huggingface_api_key = os.environ.get("HUGGINGFACE_API_KEY")
-        if not self.huggingface_api_key:
-            raise Exception("HuggingFace API key not set in environment")
-        self.timeout = 120  # Timeout dalam detik
-        self.api_url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-refiner-1.0"
-
-    def run(self):
-        try:
-            self.progress.emit("Preparing image for SDXL processing...")
-
-            # Baca gambar sebagai binary dan encode ke base64
-            with open(self.image_path, "rb") as img_file:
-                image_bytes = img_file.read()
-            image_base64 = base64.b64encode(image_bytes).decode('utf-8')
-
-            # Siapkan payload untuk Hugging Face API dengan gambar ter-encode
-            data = {
-                "prompt": self.prompt,
-                "negative_prompt": "blurry, low quality, distorted",
-                "strength": self.strength,
-                "num_inference_steps": 30,
-                "guidance_scale": 7.5,
-                "image": image_base64
-            }
-
-            headers = {
-                "Authorization": f"Bearer {self.huggingface_api_key}",
-                "Content-Type": "application/json"
-            }
-
-            self.progress.emit("Sending request to Hugging Face...")
-            response = requests.post(
-                self.api_url,
-                headers=headers,
-                json=data,
-                timeout=self.timeout
-            )
-
-            # Handle response
-            if response.status_code == 200:
-                self.progress.emit("Processing successful, saving result...")
-
-                # Generate output filename
-                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                output_path = f"sdxl_result_{timestamp}.png"
-
-                # Save the image
-                with open(output_path, "wb") as f:
-                    f.write(response.content)
-
-                self.finished.emit(output_path)
-            else:
-                error_msg = f"HTTP Error {response.status_code}"
-                try:
-                    error_details = response.json()
-                    if "error" in error_details:
-                        error_msg += f": {error_details['error']}"
-                    elif "message" in error_details:
-                        error_msg += f": {error_details['message']}"
-                except:
-                    pass
-                raise Exception(error_msg)
-
-        except Exception as e:
-            self.error.emit(f"SDXL Error: {str(e)}")
-
-
 class ImageGeneratorApp(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -186,20 +109,7 @@ class ImageGeneratorApp(QtWidgets.QWidget):
         params_layout.addWidget(QtWidgets.QLabel("Quality:"))
         params_layout.addWidget(self.quality)
 
-        # SDXL Strength
-        self.sdxl_strength = QtWidgets.QDoubleSpinBox()
-        self.sdxl_strength.setRange(0.1, 0.9)
-        self.sdxl_strength.setValue(0.5)
-        self.sdxl_strength.setSingleStep(0.1)
-        params_layout.addWidget(QtWidgets.QLabel("SDXL Strength:"))
-        params_layout.addWidget(self.sdxl_strength)
-
         layout.addLayout(params_layout)
-
-        # Checkbox untuk SDXL
-        self.enable_sdxl = QtWidgets.QCheckBox("Aktifkan SDXL Refinement")
-        self.enable_sdxl.setChecked(True)
-        layout.addWidget(self.enable_sdxl)
 
         # Progress bar
         self.progress = QtWidgets.QProgressBar()
@@ -301,51 +211,10 @@ class ImageGeneratorApp(QtWidgets.QWidget):
             with open(self.temp_image_path, "wb") as f:
                 f.write(img_response.content)
 
-            if self.enable_sdxl.isChecked():
-                self.process_with_sdxl(self.temp_image_path)
-            else:
-                self.show_final_result(self.temp_image_path)
+            self.show_final_result(self.temp_image_path)
 
         except Exception as e:
             self.handle_error(f"Gagal mendownload gambar: {str(e)}")
-
-    def process_with_sdxl(self, image_path):
-        self.log("Memulai proses SDXL refinement...")
-
-        # Setup worker thread untuk SDXL
-        self.sdxl_thread = QtCore.QThread()
-        self.sdxl_worker = SDXLWorker(
-            image_path,
-            self.last_prompt,
-            self.sdxl_strength.value()
-        )
-        self.sdxl_worker.moveToThread(self.sdxl_thread)
-
-        # Connect signals
-        self.sdxl_thread.started.connect(self.sdxl_worker.run)
-        self.sdxl_worker.finished.connect(self.handle_sdxl_success)
-        self.sdxl_worker.error.connect(self.handle_error)
-        self.sdxl_worker.progress.connect(self.log)
-
-        # Cleanup thread
-        self.sdxl_worker.finished.connect(self.sdxl_thread.quit)
-        self.sdxl_worker.error.connect(self.sdxl_thread.quit)
-        self.sdxl_thread.finished.connect(self.sdxl_thread.deleteLater)
-
-        # Update progress untuk SDXL
-        self.progress.setRange(0, 20)  # Untuk SDXL
-
-        self.sdxl_thread.start()
-
-    def handle_sdxl_success(self, image_path):
-        self.log("Proses SDXL selesai!")
-        self.show_final_result(image_path)
-        # Hapus file temporary jika ada
-        if self.temp_image_path and os.path.exists(self.temp_image_path):
-            try:
-                os.remove(self.temp_image_path)
-            except:
-                pass
 
     def show_final_result(self, image_path):
         try:
