@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+
+# PyCharm project files
+.idea/
+
+# VS Code settings (jika ada)
+.vscode/
+
+# File temporary yang dihasilkan oleh aplikasi
+temp_flux_*.jpg
+sdxl_result_*.png
+
+# File environment (jika digunakan)
+.env
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Log files (jika ada)
+*.log
+*.tmp
