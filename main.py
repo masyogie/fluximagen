@@ -85,7 +85,7 @@ class ImageGeneratorApp(QtWidgets.QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle("Flux Pro + SDXL Image Generator")
+        self.setWindowTitle("Flux Pro Image Generator")
         self.resize(800, 600)
         layout = QtWidgets.QVBoxLayout(self)
 
