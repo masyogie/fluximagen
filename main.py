@@ -3,6 +3,7 @@ import requests
 import time
 import datetime
 import os
+import base64
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 
@@ -96,32 +97,31 @@ class SDXLWorker(QtCore.QObject):
         try:
             self.progress.emit("Preparing image for SDXL processing...")
 
-            # Baca gambar sebagai binary
+            # Baca gambar sebagai binary dan encode ke base64
             with open(self.image_path, "rb") as img_file:
                 image_bytes = img_file.read()
+            image_base64 = base64.b64encode(image_bytes).decode('utf-8')
 
-            # Siapkan payload untuk Hugging Face API
-            files = {
-                "image": ("input.jpg", image_bytes, "image/jpeg"),
-            }
+            # Siapkan payload untuk Hugging Face API dengan gambar ter-encode
             data = {
                 "prompt": self.prompt,
                 "negative_prompt": "blurry, low quality, distorted",
                 "strength": self.strength,
                 "num_inference_steps": 30,
-                "guidance_scale": 7.5
+                "guidance_scale": 7.5,
+                "image": image_base64
             }
 
             headers = {
-                "Authorization": f"Bearer {self.huggingface_api_key}"
+                "Authorization": f"Bearer {self.huggingface_api_key}",
+                "Content-Type": "application/json"
             }
 
             self.progress.emit("Sending request to Hugging Face...")
             response = requests.post(
                 self.api_url,
                 headers=headers,
-                files=files,
-                data=data,
+                json=data,
                 timeout=self.timeout
             )
 
