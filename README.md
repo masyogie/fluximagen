@@ -1,17 +1,14 @@
-# FluxImagen
+# FluxImagen Pro
 
-FluxImagen adalah aplikasi Python berbasis PyQt5 yang mengintegrasikan Flux Pro Ultra untuk pembuatan gambar.
+PyQt5 application for AI image generation using Flux Pro Ultra API.
 
-## Fitur
-- **Generasi Gambar:** Menggunakan API Flux Pro Ultra untuk membuat gambar dari prompt.
-- **Antarmuka Pengguna:** Dibangun dengan PyQt5, memberikan kemudahan penggunaan dan kontrol langsung melalui GUI.
+## Features
+- Generate images from text prompts
+- Multiple aspect ratios (1:1, 4:3, 16:9, 9:16)
+- Quality options (standard/high)
+- Image preview and save functionality
+- Progress tracking and error handling
 
-## Prasyarat
-- Python 3.9 atau lebih baru
-- [PyQt5](https://pypi.org/project/PyQt5/)
-- [requests](https://pypi.org/project/requests/)
-
-## Instalasi
-1. **Clone Repository:**
-   ```bash
-   git clone <repository_url>
+## Requirements
+- Python 3.9+
+- Flux Pro Ultra API key
